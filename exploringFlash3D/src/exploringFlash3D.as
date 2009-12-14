@@ -1,5 +1,8 @@
 package
 {
+    import com.pblabs.engine.PBE;
+    import com.pblabs.engine.core.InputKey;
+    
     import flash.display.Sprite;
     import flash.events.Event;
     import flash.geom.Matrix3D;
@@ -16,9 +19,11 @@ package
         
         public function exploringFlash3D()
         {
+            PBE.startup(this);
+            
             // Stick a spining sprite on screen.
             spinner = new Sprite();
-            addChild(spinner);
+            //addChild(spinner);
             
             spinner.graphics.beginFill(0xFF00FF);
             spinner.graphics.drawRect(-60, -60, 120, 120);
@@ -35,7 +40,7 @@ package
             spinner.x = 100;
             spinner.y = 100;
             
-            for(var i:int=0; i<1000; i++)
+            for(var i:int=0; i<100; i++)
                 createParticle(Math.random() * 0xFFFFFF);
             
             addEventListener(Event.ENTER_FRAME, onFrame);
@@ -56,13 +61,32 @@ package
             addChild(particle);
         }
        
+        var curX:int;
+        var curZ:int;
+        
         public function onFrame(e:*):void
         {
+            if(PBE.isKeyDown(InputKey.A))
+                curX--;
+            
+            if(PBE.isKeyDown(InputKey.D))
+                curX++;
+            
+            if(PBE.isKeyDown(InputKey.W))
+                curZ++;
+            
+            if(PBE.isKeyDown(InputKey.S))
+                curZ--;
+            
+            transform.perspectiveProjection.fieldOfView = 90;
+            transform.perspectiveProjection.focalLength = 100;
+            transform.perspectiveProjection.projectionCenter = new Point(stage.stageWidth / 2, stage.stageHeight / 2);
+            
             projectionMatrix = transform.perspectiveProjection.toMatrix3D();
             
             worldMatrix.identity();
-            worldMatrix.appendTranslation(0, 0, -100);
-            worldMatrix.appendRotation(getTimer() / 100, new Vector3D(0, 1, 0));
+            worldMatrix.appendTranslation(curX, 0, curZ);
+            //worldMatrix.appendRotation(getTimer() / 100, new Vector3D(0, 1, 0));
             
             worldMatrix.append(projectionMatrix);
             
@@ -75,13 +99,10 @@ package
                 
                 // Position it based on its transformed position.
                 var screenPos:Vector3D = worldMatrix.transformVector(curThing.worldPosition);
-                var size:Number = 1;
                 screenPos.project();
                 
-                curThing.x = screenPos.x;
-                curThing.y = screenPos.y;
-                curThing.scaleX = size;
-                curThing.scaleY = size;
+                curThing.x = screenPos.x + stage.stageWidth / 2;
+                curThing.y = screenPos.y + stage.stageHeight / 2;
             }
         }
     }
