@@ -2,11 +2,17 @@ package
 {
     import flash.display.Sprite;
     import flash.events.Event;
+    import flash.geom.Matrix3D;
+    import flash.geom.Point;
     import flash.geom.Vector3D;
+    import flash.utils.getTimer;
     
+    [SWF(frameRate="120")]
     public class exploringFlash3D extends Sprite
     {
         var spinner:Sprite;
+        var worldMatrix:Matrix3D = new Matrix3D();
+        var projectionMatrix:Matrix3D;
         
         public function exploringFlash3D()
         {
@@ -30,32 +36,53 @@ package
             spinner.y = 100;
             
             for(var i:int=0; i<1000; i++)
-                createParticle(null, Math.random() * 0xFFFFFF);
+                createParticle(Math.random() * 0xFFFFFF);
             
             addEventListener(Event.ENTER_FRAME, onFrame);
         }
         
-        public function createParticle(pos:Vector3D, color:uint):void
+        public function createParticle(color:uint):void
         {
-            var particle:Sprite = new Sprite();
+            var particle:DO3D = new DO3D();
             
             particle.graphics.beginFill(color, 0.5);
             particle.graphics.drawCircle(0, 0, 32);
             particle.graphics.endFill();
             
-            particle.x = Math.random() * 200 - 100;
-            particle.y = Math.random() * 200 - 100;
-            particle.z = Math.random() * 200 - 100;
+            particle.worldPosition.x = Math.random() * 200 - 100;
+            particle.worldPosition.y = Math.random() * 200 - 100;
+            particle.worldPosition.z = Math.random() * 200 - 100;
             
-            spinner.addChild(particle);
+            addChild(particle);
         }
        
         public function onFrame(e:*):void
         {
-            spinner.rotationX += 1;
-            spinner.rotationY += 1;
-            spinner.rotationZ += 1;
-            spinner.z += 1;
+            projectionMatrix = transform.perspectiveProjection.toMatrix3D();
+            
+            worldMatrix.identity();
+            worldMatrix.appendTranslation(0, 0, -100);
+            worldMatrix.appendRotation(getTimer() / 100, new Vector3D(0, 1, 0));
+            
+            worldMatrix.append(projectionMatrix);
+            
+            // Position everything.
+            for(var i:int=0; i<numChildren; i++)
+            {
+                var curThing:DO3D = getChildAt(i) as DO3D;
+                if(!curThing)
+                    continue;
+                
+                // Position it based on its transformed position.
+                var screenPos:Vector3D = worldMatrix.transformVector(curThing.worldPosition);
+                var size:Number = 1;
+                screenPos.project();
+                
+                curThing.x = screenPos.x;
+                curThing.y = screenPos.y;
+                curThing.scaleX = size;
+                curThing.scaleY = size;
+            }
         }
     }
 }
