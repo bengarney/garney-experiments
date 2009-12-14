@@ -16,36 +16,20 @@ package
     [SWF(frameRate="120")]
     public class exploringFlash3D extends Sprite implements ITickedObject
     {
-        var spinner:Sprite;
         var worldMatrix:Matrix3D = new Matrix3D();
         var projectionMatrix:Matrix3D;
+        
+        var curX:Number = 100;
+        var curZ:Number = 0;
+        var yRot:Number = 0;
         
         public function exploringFlash3D()
         {
             PBE.startup(this);
             
-            // Stick a spining sprite on screen.
-            spinner = new Sprite();
-            //addChild(spinner);
-            
-            spinner.graphics.beginFill(0xFF00FF);
-            spinner.graphics.drawRect(-60, -60, 120, 120);
-            spinner.graphics.endFill();
-            
-            spinner.graphics.lineStyle(0, 0x00FF00);
-            spinner.graphics.moveTo( -40, -40);
-            spinner.graphics.lineTo( 40, 40);
-
-            spinner.graphics.lineStyle(0, 0xFFFFFF);
-            spinner.graphics.moveTo( -40,  40);
-            spinner.graphics.lineTo( 40, -40);
-            
-            spinner.x = 100;
-            spinner.y = 100;
-            
             for(var i:int=0; i<1000; i++)
                 createParticle(Math.random() * 0xFFFFFF);
-
+            
             ProcessManager.instance.addTickedObject(this);
         }
         
@@ -64,14 +48,6 @@ package
             addChild(particle);
         }
        
-        var curX:Number = 100;
-        var curZ:Number = 0;
-        var yRot:Number = -90;
-        
-        var inPos:Vector.<Number> = new Vector.<Number>;
-        var outPos:Vector.<Number> = new Vector.<Number>;
-        var outUvt:Vector.<Number> = new Vector.<Number>;
-
         public function onTick(dt:Number):void
         {
             var deltaX:Number = 0, deltaY:Number = 0;
@@ -114,49 +90,37 @@ package
             
             var screenPos:Vector3D = new Vector3D();
             
-            // Batch project everything.
-            inPos.length = numChildren * 3;
-            outPos.length = numChildren * 2;
-            outUvt.length = numChildren * 3;
-            
-            for(var i:int=0; i<numChildren; i++)
-            {
-                var curThing:DO3D = getChildAt(i) as DO3D;
-                if(!curThing)
-                    continue;
-                
-                inPos[i*3 + 0] = curThing.worldPosition.x;
-                inPos[i*3 + 1] = curThing.worldPosition.y;
-                inPos[i*3 + 2] = curThing.worldPosition.z;
-            }
-            
-            Utils3D.projectVectors(worldMatrix, inPos, outPos, outUvt);
-            
             // Position everything.
             for(var i:int=0; i<numChildren; i++)
             {
                 var curThing:DO3D = getChildAt(i) as DO3D;
                 if(!curThing)
                     continue;
-                
-                var preZ:Number = outUvt[i*3 + 2];
-                curThing.x = outPos[i*2+0] + stage.stageWidth / 2;
-                curThing.y = outPos[i*2+1] + stage.stageHeight / 2;
+
+                // Position it based on its transformed position.
+                transformVec(worldMatrix, curThing.worldPosition, screenPos);
+                var preZ:Number = screenPos.z;
+                screenPos.project();
+
+                curThing.x = screenPos.x + stage.stageWidth / 2;
+                curThing.y = screenPos.y + stage.stageHeight / 2;
                 curThing.visible = preZ < 0;
                 
-                var scaleFactor:Number = 1; //focalLength / preZ;
+                var scaleFactor:Number = focalLength / preZ;
                 curThing.scaleX = scaleFactor;
                 curThing.scaleY = scaleFactor;
             }
         }
         
-        public final function transformVector(m:Matrix3D, i:Vector3D, o:Vector3D):void
+        final public function transformVec(m:Matrix3D, i:Vector3D, o:Vector3D):void
         {
-            var d:Vector.<Number> = m.rawData;
-            o.x = i.x * d[0]  + i.y * d[1]  + i.z * d[2]  + d[3];
-            o.y = i.x * d[4]  + i.y * d[5]  + i.z * d[6]  + d[7];
-            o.z = i.x * d[8]  + i.y * d[9]  + i.z * d[10]  + d[11];
-            o.w = i.x * d[12]  + i.y * d[13]  + i.z * d[14]  + d[15];
+            const x:Number = i.x, y:Number = i.y, z:Number = i.z;
+            const d:Vector.<Number> = m.rawData;
+            
+            o.x = x * d[0] + y * d[4] + z * d[8] + d[12];
+            o.y = x * d[1] + y * d[5] + z * d[9] + d[13];
+            o.z = x * d[2] + y * d[6] + z * d[10] + d[14];
+            o.w = x * d[3] + y * d[7] + z * d[11] + d[15];
         }
     }
 }
