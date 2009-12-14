@@ -61,7 +61,7 @@ package
             addChild(particle);
         }
        
-        var curX:int;
+        var curX:int = 100;
         var curZ:int;
         
         public function onFrame(e:*):void
@@ -85,8 +85,8 @@ package
             projectionMatrix = transform.perspectiveProjection.toMatrix3D();
             
             worldMatrix.identity();
-            worldMatrix.appendTranslation(curX, 0, curZ);
-            //worldMatrix.appendRotation(getTimer() / 100, new Vector3D(0, 1, 0));
+            worldMatrix.prependTranslation(curX, 0, curZ);
+            worldMatrix.appendRotation(getTimer() / 10, Vector3D.Y_AXIS);
             
             worldMatrix.append(projectionMatrix);
             
@@ -99,10 +99,12 @@ package
                 
                 // Position it based on its transformed position.
                 var screenPos:Vector3D = worldMatrix.transformVector(curThing.worldPosition);
+                var preZ:Number = screenPos.z;
                 screenPos.project();
                 
                 curThing.x = screenPos.x + stage.stageWidth / 2;
                 curThing.y = screenPos.y + stage.stageHeight / 2;
+                curThing.visible = preZ < 0;
             }
         }
     }
