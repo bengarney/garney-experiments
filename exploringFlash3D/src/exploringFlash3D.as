@@ -20,6 +20,10 @@ package
             spinner.graphics.lineStyle(0, 0x00FF00);
             spinner.graphics.moveTo( -40, -40);
             spinner.graphics.lineTo( 40, 40);
+
+            spinner.graphics.lineStyle(0, 0xFFFFFF);
+            spinner.graphics.moveTo( -40,  40);
+            spinner.graphics.lineTo( 40, -40);
             
             spinner.x = 100;
             spinner.y = 100;
@@ -32,6 +36,7 @@ package
             spinner.rotationX += 1;
             spinner.rotationY += 1;
             spinner.rotationZ += 1;
+            spinner.z += 1;
         }
     }
 }
