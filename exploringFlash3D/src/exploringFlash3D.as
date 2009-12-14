@@ -2,6 +2,7 @@ package
 {
     import flash.display.Sprite;
     import flash.events.Event;
+    import flash.geom.Vector3D;
     
     public class exploringFlash3D extends Sprite
     {
@@ -28,9 +29,27 @@ package
             spinner.x = 100;
             spinner.y = 100;
             
+            for(var i:int=0; i<1000; i++)
+                createParticle(null, Math.random() * 0xFFFFFF);
+            
             addEventListener(Event.ENTER_FRAME, onFrame);
         }
         
+        public function createParticle(pos:Vector3D, color:uint):void
+        {
+            var particle:Sprite = new Sprite();
+            
+            particle.graphics.beginFill(color, 0.5);
+            particle.graphics.drawCircle(0, 0, 32);
+            particle.graphics.endFill();
+            
+            particle.x = Math.random() * 200 - 100;
+            particle.y = Math.random() * 200 - 100;
+            particle.z = Math.random() * 200 - 100;
+            
+            spinner.addChild(particle);
+        }
+       
         public function onFrame(e:*):void
         {
             spinner.rotationX += 1;
