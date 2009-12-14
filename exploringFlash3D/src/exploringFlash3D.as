@@ -1,7 +1,9 @@
 package
 {
     import com.pblabs.engine.PBE;
+    import com.pblabs.engine.core.ITickedObject;
     import com.pblabs.engine.core.InputKey;
+    import com.pblabs.engine.core.ProcessManager;
     
     import flash.display.Sprite;
     import flash.events.Event;
@@ -11,7 +13,7 @@ package
     import flash.utils.getTimer;
     
     [SWF(frameRate="120")]
-    public class exploringFlash3D extends Sprite
+    public class exploringFlash3D extends Sprite implements ITickedObject
     {
         var spinner:Sprite;
         var worldMatrix:Matrix3D = new Matrix3D();
@@ -40,10 +42,10 @@ package
             spinner.x = 100;
             spinner.y = 100;
             
-            for(var i:int=0; i<100; i++)
+            for(var i:int=0; i<1000; i++)
                 createParticle(Math.random() * 0xFFFFFF);
-            
-            addEventListener(Event.ENTER_FRAME, onFrame);
+
+            ProcessManager.instance.addTickedObject(this);
         }
         
         public function createParticle(color:uint):void
@@ -63,9 +65,9 @@ package
        
         var curX:Number = 100;
         var curZ:Number = 0;
-        var yRot:Number = 0;
+        var yRot:Number = -90;
         
-        public function onFrame(e:*):void
+        public function onTick(dt:Number):void
         {
             var deltaX:Number = 0, deltaY:Number = 0;
             if(PBE.isKeyDown(InputKey.A))
@@ -105,6 +107,8 @@ package
             
             worldMatrix.append(projectionMatrix);
             
+            var screenPos:Vector3D = new Vector3D();
+            
             // Position everything.
             for(var i:int=0; i<numChildren; i++)
             {
@@ -113,7 +117,7 @@ package
                     continue;
                 
                 // Position it based on its transformed position.
-                var screenPos:Vector3D = worldMatrix.transformVector(curThing.worldPosition);
+                transformVector(worldMatrix, curThing.worldPosition, screenPos);
                 var preZ:Number = screenPos.z;
                 screenPos.project();
                 
@@ -125,6 +129,15 @@ package
                 curThing.scaleX = scaleFactor;
                 curThing.scaleY = scaleFactor;
             }
+        }
+        
+        public final function transformVector(m:Matrix3D, i:Vector3D, o:Vector3D):void
+        {
+            var d:Vector.<Number> = m.rawData;
+            o.x = i.x * d[0]  + i.y * d[1]  + i.z * d[2]  + d[3];
+            o.y = i.x * d[4]  + i.y * d[5]  + i.z * d[6]  + d[7];
+            o.z = i.x * d[8]  + i.y * d[9]  + i.z * d[10]  + d[11];
+            o.w = i.x * d[12]  + i.y * d[13]  + i.z * d[14]  + d[15];
         }
     }
 }
