@@ -4,6 +4,7 @@ package
     import com.pblabs.engine.core.ITickedObject;
     import com.pblabs.engine.core.InputKey;
     import com.pblabs.engine.core.ProcessManager;
+    import com.pblabs.engine.debug.Profiler;
     
     import flash.display.Sprite;
     import flash.events.Event;
@@ -50,6 +51,8 @@ package
        
         public function onTick(dt:Number):void
         {
+            Profiler.enter("preamble");
+            
             var deltaX:Number = 0, deltaY:Number = 0;
             if(PBE.isKeyDown(InputKey.A))
                 deltaX -= 4;
@@ -85,11 +88,12 @@ package
             worldMatrix.identity();
             worldMatrix.prependTranslation(curX, 0, curZ);
             worldMatrix.appendRotation(yRot * 2, Vector3D.Y_AXIS);
-            
             worldMatrix.append(projectionMatrix);
             
             var screenPos:Vector3D = new Vector3D();
-            
+
+            Profiler.exit("preamble");
+
             // Position everything.
             for(var i:int=0; i<numChildren; i++)
             {
@@ -99,16 +103,25 @@ package
 
                 // Position it based on its transformed position.
                 transformVec(worldMatrix, curThing.worldPosition, screenPos);
+                //screenPos = worldMatrix.transformVector(curThing.worldPosition);
                 var preZ:Number = screenPos.z;
                 screenPos.project();
 
-                curThing.x = screenPos.x + stage.stageWidth / 2;
-                curThing.y = screenPos.y + stage.stageHeight / 2;
-                curThing.visible = preZ < 0;
+                if(preZ < 0)
+                {
+                    curThing.visible = true;
+                    curThing.x = screenPos.x + stage.stageWidth / 2;
+                    curThing.y = screenPos.y + stage.stageHeight / 2;
+
+                    var scaleFactor:Number = focalLength / preZ;
+                    curThing.scaleX = scaleFactor;
+                    curThing.scaleY = scaleFactor;
+                }
+                else
+                {
+                    curThing.visible = false;
+                }
                 
-                var scaleFactor:Number = focalLength / preZ;
-                curThing.scaleX = scaleFactor;
-                curThing.scaleY = scaleFactor;
             }
         }
         
