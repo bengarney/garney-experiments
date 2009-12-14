@@ -9,6 +9,7 @@ package
     import flash.events.Event;
     import flash.geom.Matrix3D;
     import flash.geom.Point;
+    import flash.geom.Utils3D;
     import flash.geom.Vector3D;
     import flash.utils.getTimer;
     
@@ -67,6 +68,10 @@ package
         var curZ:Number = 0;
         var yRot:Number = -90;
         
+        var inPos:Vector.<Number> = new Vector.<Number>;
+        var outPos:Vector.<Number> = new Vector.<Number>;
+        var outUvt:Vector.<Number> = new Vector.<Number>;
+
         public function onTick(dt:Number):void
         {
             var deltaX:Number = 0, deltaY:Number = 0;
@@ -109,6 +114,24 @@ package
             
             var screenPos:Vector3D = new Vector3D();
             
+            // Batch project everything.
+            inPos.length = numChildren * 3;
+            outPos.length = numChildren * 2;
+            outUvt.length = numChildren * 3;
+            
+            for(var i:int=0; i<numChildren; i++)
+            {
+                var curThing:DO3D = getChildAt(i) as DO3D;
+                if(!curThing)
+                    continue;
+                
+                inPos[i*3 + 0] = curThing.worldPosition.x;
+                inPos[i*3 + 1] = curThing.worldPosition.y;
+                inPos[i*3 + 2] = curThing.worldPosition.z;
+            }
+            
+            Utils3D.projectVectors(worldMatrix, inPos, outPos, outUvt);
+            
             // Position everything.
             for(var i:int=0; i<numChildren; i++)
             {
@@ -116,16 +139,12 @@ package
                 if(!curThing)
                     continue;
                 
-                // Position it based on its transformed position.
-                transformVector(worldMatrix, curThing.worldPosition, screenPos);
-                var preZ:Number = screenPos.z;
-                screenPos.project();
-                
-                curThing.x = screenPos.x + stage.stageWidth / 2;
-                curThing.y = screenPos.y + stage.stageHeight / 2;
+                var preZ:Number = outUvt[i*3 + 2];
+                curThing.x = outPos[i*2+0] + stage.stageWidth / 2;
+                curThing.y = outPos[i*2+1] + stage.stageHeight / 2;
                 curThing.visible = preZ < 0;
                 
-                var scaleFactor:Number = focalLength / preZ;
+                var scaleFactor:Number = 1; //focalLength / preZ;
                 curThing.scaleX = scaleFactor;
                 curThing.scaleY = scaleFactor;
             }
