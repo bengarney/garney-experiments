@@ -61,32 +61,47 @@ package
             addChild(particle);
         }
        
-        var curX:int = 100;
-        var curZ:int;
+        var curX:Number = 100;
+        var curZ:Number = 0;
+        var yRot:Number = 0;
         
         public function onFrame(e:*):void
         {
+            var deltaX:Number = 0, deltaY:Number = 0;
             if(PBE.isKeyDown(InputKey.A))
-                curX--;
+                deltaX -= 4;
             
             if(PBE.isKeyDown(InputKey.D))
-                curX++;
+                deltaX += 4;
             
             if(PBE.isKeyDown(InputKey.W))
-                curZ++;
+                deltaY += 4;
             
             if(PBE.isKeyDown(InputKey.S))
-                curZ--;
+                deltaY -= 4;
+            
+            if(PBE.isKeyDown(InputKey.Q))
+                yRot--;
+            
+            if(PBE.isKeyDown(InputKey.E))
+                yRot++;
+            
+            // Move according to heading.
+            var th:Number = (yRot / 90.0) * Math.PI; 
+            curX += (Math.cos(th) * deltaX) + (-Math.sin(th) * deltaY);
+            curZ += (Math.sin(th) * deltaX) + (Math.cos(th) * deltaY);
+            
+            var focalLength:Number = 1000;
             
             transform.perspectiveProjection.fieldOfView = 90;
-            transform.perspectiveProjection.focalLength = 100;
+            transform.perspectiveProjection.focalLength = focalLength;
             transform.perspectiveProjection.projectionCenter = new Point(stage.stageWidth / 2, stage.stageHeight / 2);
             
             projectionMatrix = transform.perspectiveProjection.toMatrix3D();
             
             worldMatrix.identity();
             worldMatrix.prependTranslation(curX, 0, curZ);
-            worldMatrix.appendRotation(getTimer() / 10, Vector3D.Y_AXIS);
+            worldMatrix.appendRotation(yRot * 2, Vector3D.Y_AXIS);
             
             worldMatrix.append(projectionMatrix);
             
@@ -105,6 +120,10 @@ package
                 curThing.x = screenPos.x + stage.stageWidth / 2;
                 curThing.y = screenPos.y + stage.stageHeight / 2;
                 curThing.visible = preZ < 0;
+                
+                var scaleFactor:Number = focalLength / preZ;
+                curThing.scaleX = scaleFactor;
+                curThing.scaleY = scaleFactor;
             }
         }
     }
