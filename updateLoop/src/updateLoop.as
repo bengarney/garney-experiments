@@ -179,6 +179,14 @@ package
                 workLoad--;
                 trace("Decrementing workload to " + workLoad);                
             }
+            else if(ke.keyCode == 32) // space
+            {
+                renderBitmap.clear();
+                frameBitmap.clear();
+                alwaysOnBitmap.clear();
+                toggledBitmap.clear();
+                trace("Wiped bitmaps.");
+            }
             else
             {
                 trace("Unknown keycode " + ke.keyCode);

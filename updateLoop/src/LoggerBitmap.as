@@ -34,6 +34,14 @@ package
         }
         
         /**
+         * Empty the bitmap.
+         */
+        public function clear():void
+        {
+            bitmap.bitmapData.fillRect(bitmap.bitmapData.rect, 0);
+        }
+        
+        /**
          * Plots a value on the chart, if it is over 200 it draws a red column.
          */
         public function log(value:int):void
@@ -52,7 +60,6 @@ package
             }
         }
         
-        
         /**
          * Plots time since last call to logElapsed();. 
          */
@@ -65,6 +72,12 @@ package
             lastTime = curTime;
         }
         
+        /**
+         * Used to log activity on the other update methods. 
+         * @param color
+         * @param quadrant
+         * 
+         */
         public function logSync(color:int = 0x008800, quadrant:int = 0):void
         {
             // Set the whole column.
