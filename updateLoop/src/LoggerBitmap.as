@@ -43,11 +43,11 @@ package
             bitmap.bitmapData.fillRect(new Rectangle(bitmap.bitmapData.width - 1, 0, 1, 100), 0x0);
             
             if(value < 200)
-                bitmap.bitmapData.setPixel(pos, value >> 1, 0xFFFF00);
+                bitmap.bitmapData.setPixel(pos, bitmap.bitmapData.height - (value >> 1), 0xFFFF00);
             else
             {
                 // Set the whole column red.
-                for(var i:int=0; i<bitmap.bitmapData.height / 2; i++)
+                for(var i:int=bitmap.bitmapData.height>>1; i<bitmap.bitmapData.height; i++)
                     bitmap.bitmapData.setPixel(pos, i, 0xFF0000);
             }
         }
